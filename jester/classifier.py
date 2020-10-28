@@ -145,7 +145,7 @@ class CandClassifier(QWidget):
         upper_limit = float(self._stats_window.end_limit.text())
 
         remaining_plots = self._cand_plots[self._current_cand:]
-        passed_remaining_plots = [cand for cand in self._cand_plots if not ((float(basename(cand).split("_")[2]) >= lower_limit) and (float(basename(cand).split("_")[2]) < upper_limit))]
+        passed_remaining_plots = [cand for cand in remaining_plots if not ((float(basename(cand).split("_")[2]) >= lower_limit) and (float(basename(cand).split("_")[2]) < upper_limit))]
 
         removed = len(remaining_plots) - len(passed_remaining_plots)
         self._stats_window.remove_label.setText(f"Removed {removed} candidates")
