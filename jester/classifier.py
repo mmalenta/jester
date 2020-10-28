@@ -21,6 +21,8 @@ class CandClassifier(QWidget):
 
         super().__init__()
 
+        print()
+
         self._directory = directory
         self._output_file_name = output
         self._cand_plots = sorted(glob(path.join(directory, "*" + extension)))
@@ -405,7 +407,7 @@ class ExamplesWindow(QWidget):
 
         self._example_descriptions = []
 
-        with open(path.join("./examples", "notes")) as nf:
+        with open(path.join(path.dirname(path.realpath(__file__)), "..", "./examples", "notes")) as nf:
             notes_reader = reader(nf, delimiter=",")
 
             for note in notes_reader:
@@ -440,7 +442,7 @@ class ExamplesWindow(QWidget):
 
         if (idx < self._total_examples) and (idx >= 0):
             cand = self._example_descriptions[idx]
-            cand_map = QPixmap(path.join("examples", cand["file"]))
+            cand_map = QPixmap(path.join(path.dirname(path.realpath(__file__)), "..", "examples", cand["file"]))
             self._plot_label.setPixmap(cand_map)
             self._description_label.setText(f"{idx + 1}/{self._total_examples} Label {cand['label']}: {cand['description']}")
             self._current_example = idx
