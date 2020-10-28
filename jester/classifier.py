@@ -26,10 +26,7 @@ class CandClassifier(QWidget):
         self._total_cands = len(self._cand_plots)
 
         self._cands_params = [{"mjd": float(basename(cand).split("_")[0]), "dm": float(basename(cand).split("_")[2])} for cand in self._cand_plots]
-        print(self._cands_params[:10])
-
         self._current_cand = 0
-
         self._rfi_data = []
         self._cand_data = []
         #self._class_writer = writer(open(path.join(directory, "results.csv"),
@@ -144,7 +141,6 @@ class CandClassifier(QWidget):
             self._cand_label.setText("No candidates to view")
     def _get_limits(self):
 
-        print("Applying limits")
         limit_type = self._stats_window.limits_choice.currentText()
         lower_limit = float(self._stats_window.start_limit.text())
         upper_limit = float(self._stats_window.end_limit.text())
@@ -152,9 +148,13 @@ class CandClassifier(QWidget):
         remaining_plots = self._cand_plots[self._current_cand:]
         passed_remaining_plots = [cand for cand in self._cand_plots if not ((float(basename(cand).split("_")[2]) >= lower_limit) and (float(basename(cand).split("_")[2]) < upper_limit))]
 
+        removed = len(remaining_plots) - len(passed_remaining_plots)
+        self._stats_window.remove_label.setText(f"Removed {removed} candidates")
+
         del self._cand_plots[self._current_cand:]
 
         self._cand_plots.extend(passed_remaining_plots)
+        self._total_cands = len(self._cand_plots)
         self._cands_params = [{"mjd": float(basename(cand).split("_")[0]), "dm": float(basename(cand).split("_")[2])} for cand in self._cand_plots]
 
         self._stats_window.update_dist_plot([cand["dm"] for cand in self._cands_params])
@@ -337,12 +337,14 @@ class StatsWindow(QWidget):
         self.apply_limits_button.setFixedWidth(150)
         self.apply_limits_button.setText("Remove limits")
         limits_box.addWidget(self.apply_limits_button)
+        self.remove_label = QLabel()
+        limits_box.addWidget(self.remove_label)
         main_box.addLayout(limits_box)
+        
 
         self.setLayout(main_box)
 
     def _update(self, rfi_data, cand_data):
-
 
         y_rfi, x_rfi = histogram([cand[1] for cand in rfi_data],
                                  bins=min(len(rfi_data) + 1, 100))
@@ -354,6 +356,5 @@ class StatsWindow(QWidget):
 
     def update_dist_plot(self, data):
 
-        print(data[:10])
         y_dist, x_dist = histogram(data, bins=100)
         self.dist_plot.plot.setData(x_dist, y_dist)
