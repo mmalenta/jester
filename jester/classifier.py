@@ -35,6 +35,9 @@ class CandClassifier(QWidget):
         self._stats_window.update_dist_plot([cand["dm"] for cand in self._cands_params])
         self._stats_window.apply_limits_button.clicked.connect(self._get_limits)
 
+        self._help_window = HelpWindow()
+        self._examples_window = ExamplesWindow()
+
         main_box = QVBoxLayout()
         main_box.setContentsMargins(10, 0, 10, 0)
         main_box.setSpacing(0)
@@ -123,6 +126,14 @@ class CandClassifier(QWidget):
         self._stats_button.clicked.connect(self._open_stats)
         self._stats_button.setText("Open Statistics")
         extra_buttons.addWidget(self._stats_button)
+        self._examples_button = QPushButton()
+        self._examples_button.clicked.connect(self._open_examples)
+        self._examples_button.setText("Examples")
+        extra_buttons.addWidget(self._examples_button)
+        self._help_button = QPushButton()
+        self._help_button.clicked.connect(self._open_help)
+        self._help_button.setText("Help")
+        extra_buttons.addWidget(self._help_button)
         buttons_box.addLayout(extra_buttons)
         main_box.addLayout(buttons_box)
 
@@ -177,6 +188,20 @@ class CandClassifier(QWidget):
         else:
             self._stats_window.hide()
             self._stats_button.setText("Open Statistics")
+
+    def _open_help(self):
+
+        if not self._help_window.isVisible():
+            self._help_window.show()
+        else:
+            self._help_window.hide()
+
+    def _open_examples(self):
+
+        if not self._examples_window.isVisible():
+            self._examples_window.show()
+        else:
+            self._examples_window.hide()
 
     def keyPressEvent(self, event):
 
@@ -357,3 +382,71 @@ class StatsWindow(QWidget):
 
         y_dist, x_dist = histogram(data, bins=100)
         self.dist_plot.plot.setData(x_dist, y_dist)
+
+class HelpWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setGeometry(130, 130, 300, 300)
+
+        help_contents = QVBoxLayout()
+        help_label = QLabel()
+        help_label.setText("RFI: A\nCandidate: D\nPrevious: Z\nNext: X\nBack 5: PgDown\nForward 5: PgUp\nBack to start: Home\nSkip to end: End")
+        help_contents.addWidget(help_label)
+        self.setLayout(help_contents)
+
+class ExamplesWindow(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        self.setGeometry(100, 200, 1024, 600)
+        # In reality we should set it properly with
+        # setMinimum/MaximumSize() functions, based on the plot size
+        self.setFixedSize(QSize(1024, 600))
+
+        self._example_descriptions = []
+
+        with open(path.join("./examples", "notes")) as nf:
+            notes_reader = reader(nf, delimiter=",")
+
+            for note in notes_reader:
+                self._example_descriptions.append({"file": note[0], "label": note[1], "description": note[2]})
+        
+        self._total_examples = len(self._example_descriptions)
+        self._current_example = 0
+
+        example_layout = QVBoxLayout()
+        self._plot_label = QLabel()
+        example_layout.addWidget(self._plot_label)
+        nav_box = QHBoxLayout()
+        nav_box.setAlignment(Qt.AlignRight)
+        self._description_label = QLabel()
+        nav_box.addWidget(self._description_label)
+        self._prev_button = QPushButton()
+        self._prev_button.setText("<")
+        self._prev_button.clicked.connect(self._previous_press)
+        self._prev_button.setFixedWidth(100)
+        nav_box.addWidget(self._prev_button)
+        self._next_button = QPushButton()
+        self._next_button.setText(">")
+        self._next_button.clicked.connect(self._next_press)
+        self._next_button.setFixedWidth(100)
+        nav_box.addWidget(self._next_button)
+        example_layout.addLayout(nav_box)
+        self.setLayout(example_layout)
+
+        self._show_example()
+
+    def _show_example(self, idx = 0):
+
+        if (idx < self._total_examples) and (idx >= 0):
+            cand = self._example_descriptions[idx]
+            cand_map = QPixmap(path.join("examples", cand["file"]))
+            self._plot_label.setPixmap(cand_map)
+            self._description_label.setText(f"{idx + 1}/{self._total_examples} Label {cand['label']}: {cand['description']}")
+            self._current_example = idx
+
+    def _next_press(self, event):
+        self._show_example(self._current_example + 1)
+
+    def _previous_press(self, event):
+        self._show_example(self._current_example - 1)

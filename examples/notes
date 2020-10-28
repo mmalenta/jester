@@ -1,0 +1,29 @@
+mjd_58958.7457865074_dm_92.40700000000001_beam_0_fetch_combined.png,1,Two pulses are clearly visible even with the RFI streak in the end
+mjd_58958.7473205208_dm_252.047_beam_0_fetch_combined.png,0,The pulses are clearly astrophysical but the DM is way off
+mjd_58958.7476195188_dm_272.309_beam_0_fetch_combined.png,0,The pulses are clearly astrophysical but the DM is way off
+mjd_58958.7508131867_dm_335.244_beam_0_fetch_combined.png,0,The pulses are clearly astrophysical but the DM is way off
+mjd_58958.7546867103_dm_67.233_beam_0_fetch_combined.png,1,The RFI pulses at the end are strong but there is a weak pulse at the centre
+mjd_58958.7599078799_dm_49.427_beam_0_fetch_combined.png,1,Pulse is clearly visible but the bow-tie is slightly odd. Typical of low DM candidates
+mjd_58958.7644598918_dm_34.384_beam_0_fetch_combined.png,1,Pulse has a lot of scintles but is real
+mjd_58958.7652300821_dm_34.384_beam_0_fetch_combined.png,1,Two pulses with scintillation and an RFI streak
+mjd_58958.766412327_dm_34.077_beam_0_fetch_combined.png,1,Two pulses are clearly visible even with the 0-DM RFI present
+mjd_58958.7734898528_dm_322.043_beam_0_fetch_combined.png,1,Very broad real pulse that makes the bow-tie wider
+mjd_58958.7796881949_dm_93.94200000000001_beam_0_fetch_combined.png,1,Pulse coincides with 0-DM RFI but is still clearly visible
+mjd_58958.8121933701_dm_29.779_beam_0_fetch_combined.png,0,Narrow-band RFI with no clear bow-tie
+mjd_58958.817216643_dm_100.696_beam_0_fetch_combined.png,1,The DM is slightly off but not so much
+mjd_58958.824634287696_dm_295.64099999999996_beam_0_fetch_combined.png,0,Real pulse but the DM is off
+mjd_58958.83792955599_dm_2267.5_beam_0_fetch_combined.png,0,Broad-band RFI
+mjd_58966.74709543_dm_721.4860000000001_beam_181_fetch_combined.png,0,0-DM RFI
+mjd_58966.7483032646_dm_669.326_beam_170_fetch_combined.png,0,No clear signature of a pulse
+mjd_58966.7484086039_dm_521.322_beam_169_fetch_combined.png,0,Broad-band 0-DM RFI
+mjd_58966.7488087_dm_61.093_beam_16_fetch_combined.png,0,Narrow-band RFI with no clear bow-tie
+mjd_58966.749071945_dm_48.813_beam_0_fetch_combined.png,1,Very weak real pulse
+mjd_58985.9753540151_dm_75.52199999999999_beam_0_fetch_combined.png,1,Classic medium S/N pulse
+mjd_58985.97549522_dm_75.52199999999999_beam_0_fetch_combined.png,1,Classic medium S/N double peaked pulse
+mjd_58985.9758452514_dm_75.52199999999999_beam_0_fetch_combined.png,1,Classic low S/N double peaked pulse
+mjd_58985.982903884295_dm_164.245_beam_0_fetch_combined.png,0,Classic broad 0-DM RFI
+mjd_58985.9851919456_dm_22.410999999999998_beam_0_fetch_combined.png,0,Classic 0-DM RFI
+mjd_58985.9881183166_dm_36.226_beam_0_fetch_combined.png,0,Classic broad 0-DM RFI
+mjd_58993.9737797839_dm_890.1560000000001_beam_689_fetch_combined.png,0,Classic broad 0-DM RFI detected at high DM
+mjd_58999.4298632841_dm_48.813_beam_0_fetch_combined.png,1,Extremely weak real pulse
+mjd_58999.430341186904_dm_398.094_beam_5_fetch_combined.png,0,High DM instrumental RFI
