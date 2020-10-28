@@ -9,7 +9,7 @@ from PyQt5.QtGui import QPixmap
 from numpy import array, histogram
 
 from PyQt5.QtWidgets import QWidget
-from PyQt5.QtWidgets import QLabel, QPushButton
+from PyQt5.QtWidgets import QComboBox, QLabel, QLineEdit, QPushButton
 from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout
 from PyQt5.QtCore import Qt
 
@@ -24,6 +24,10 @@ class CandClassifier(QWidget):
         self._directory = directory
         self._cand_plots = sorted(glob(path.join(directory, "*" + extension)))
         self._total_cands = len(self._cand_plots)
+
+        self._cands_params = [{"mjd": float(basename(cand).split("_")[0]), "dm": float(basename(cand).split("_")[2])} for cand in self._cand_plots]
+        print(self._cands_params[:10])
+
         self._current_cand = 0
 
         self._rfi_data = []
@@ -32,6 +36,8 @@ class CandClassifier(QWidget):
         #                            "w", buffering=1), delimiter=",")
 
         self._stats_window = StatsWindow()
+        self._stats_window.update_dist_plot([cand["dm"] for cand in self._cands_params])
+        self._stats_window.apply_limits_button.clicked.connect(self._get_limits)
 
         main_box = QVBoxLayout()
         main_box.setContentsMargins(10, 0, 10, 0)
@@ -136,10 +142,23 @@ class CandClassifier(QWidget):
             self._show_cand()
         else:
             self._cand_label.setText("No candidates to view")
+    def _get_limits(self):
 
-    def _save_data(self):
+        print("Applying limits")
+        limit_type = self._stats_window.limits_choice.currentText()
+        lower_limit = float(self._stats_window.start_limit.text())
+        upper_limit = float(self._stats_window.end_limit.text())
 
-        foo = 1
+        remaining_plots = self._cand_plots[self._current_cand:]
+        passed_remaining_plots = [cand for cand in self._cand_plots if not ((float(basename(cand).split("_")[2]) >= lower_limit) and (float(basename(cand).split("_")[2]) < upper_limit))]
+
+        del self._cand_plots[self._current_cand:]
+
+        self._cand_plots.extend(passed_remaining_plots)
+        self._cands_params = [{"mjd": float(basename(cand).split("_")[0]), "dm": float(basename(cand).split("_")[2])} for cand in self._cand_plots]
+
+        self._stats_window.update_dist_plot([cand["dm"] for cand in self._cands_params])
+        self._show_cand(self._current_cand)
 
     def _show_cand(self, idx = 0):
 
@@ -268,8 +287,9 @@ class StatsWindow(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.setGeometry(150 + 1024, 150, 800, 400)
+        self.setGeometry(150 + 1024, 150, 800, 600)
 
+        main_box = QVBoxLayout()
 
         self.graph_rfi = PlotWidget()
         self.graph_rfi.setBackground("w")
@@ -277,7 +297,6 @@ class StatsWindow(QWidget):
         self.graph_rfi.plot = self.graph_rfi.plot([0,0], [0],
                                                   pen=mkPen('k', width=1),
                                                   stepMode=True)
-
         self.graph_cand = PlotWidget()
         self.graph_cand.setBackground("w")
         self.graph_cand.setTitle("Candidates", color="k")
@@ -285,11 +304,42 @@ class StatsWindow(QWidget):
                                                   pen=mkPen('k', width=1),
                                                   stepMode=True)
 
-        hbox = QHBoxLayout()
-        hbox.addWidget(self.graph_rfi)
-        hbox.addWidget(self.graph_cand)
+        self.dist_plot = PlotWidget()
+        self.dist_plot.setBackground("w")
+        self.dist_plot.setTitle("Full distribution", color="k")
+        self.dist_plot.plot = self.dist_plot.plot([0,0], [0],
+                                                  pen=mkPen('k', width=1),
+                                                  stepMode=True)
 
-        self.setLayout(hbox)
+
+        plots_box = QHBoxLayout()
+        plots_box.addWidget(self.graph_rfi)
+        plots_box.addWidget(self.graph_cand)
+        main_box.addLayout(plots_box)
+        main_box.addWidget(self.dist_plot)
+
+        limits_box = QHBoxLayout()
+        limits_box.setAlignment(Qt.AlignLeft)
+        
+        self.limits_choice = QComboBox()
+        self.limits_choice.addItems(["DM", "MJD"])
+        self.limits_choice.setFixedWidth(100)
+        limits_box.addWidget(self.limits_choice)
+        self.start_limit = QLineEdit()
+        self.start_limit.setPlaceholderText("from")
+        self.start_limit.setFixedWidth(150)
+        limits_box.addWidget(self.start_limit)
+        self.end_limit = QLineEdit()
+        self.end_limit.setPlaceholderText("to")
+        self.end_limit.setFixedWidth(150)
+        limits_box.addWidget(self.end_limit)
+        self.apply_limits_button = QPushButton()
+        self.apply_limits_button.setFixedWidth(150)
+        self.apply_limits_button.setText("Remove limits")
+        limits_box.addWidget(self.apply_limits_button)
+        main_box.addLayout(limits_box)
+
+        self.setLayout(main_box)
 
     def _update(self, rfi_data, cand_data):
 
@@ -301,3 +351,9 @@ class StatsWindow(QWidget):
         y_cand, x_cand = histogram([cand[1] for cand in cand_data],
                                    bins=min(len(cand_data) + 1, 100))
         self.graph_cand.plot.setData(x_cand, y_cand)
+
+    def update_dist_plot(self, data):
+
+        print(data[:10])
+        y_dist, x_dist = histogram(data, bins=100)
+        self.dist_plot.plot.setData(x_dist, y_dist)
