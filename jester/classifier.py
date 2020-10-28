@@ -17,11 +17,12 @@ from pyqtgraph import mkPen, PlotWidget
 
 class CandClassifier(QWidget):
 
-    def __init__(self, directory, extension):
+    def __init__(self, directory, output, extension):
 
         super().__init__()
 
         self._directory = directory
+        self._output_file_name = output
         self._cand_plots = sorted(glob(path.join(directory, "*" + extension)))
         self._total_cands = len(self._cand_plots)
 
@@ -29,8 +30,6 @@ class CandClassifier(QWidget):
         self._current_cand = 0
         self._rfi_data = []
         self._cand_data = []
-        #self._class_writer = writer(open(path.join(directory, "results.csv"),
-        #                            "w", buffering=1), delimiter=",")
 
         self._stats_window = StatsWindow()
         self._stats_window.update_dist_plot([cand["dm"] for cand in self._cands_params])
@@ -231,9 +230,9 @@ class CandClassifier(QWidget):
 
     def _replace_csv(self, cand_name, new_label):
 
-        with open(path.join(self._directory, "results.csv"),
+        with open(path.join(self._directory, self._output_file_name),
                             "r", buffering=1) as of,\
-             open(path.join(self._directory, "results.csv.tmp"),
+             open(path.join(self._directory, self._output_file_name + ".tmp"),
                             "a", buffering=1) as nf:
             
             old_csv = reader(of, delimiter=",")
@@ -245,12 +244,12 @@ class CandClassifier(QWidget):
                 else:
                     new_csv.writerow([cand[0], new_label])
 
-        move(path.join(self._directory, "results.csv.tmp"),
-             path.join(self._directory, "results.csv"))
+        move(path.join(self._directory, self._output_file_name + ".tmp"),
+             path.join(self._directory, self._output_file_name))
 
     def _add_csv(self, cand_name, label):
 
-        with open(path.join(self._directory, "results.csv"),
+        with open(path.join(self._directory, self._output_file_name),
                             "a", buffering=1) as cf:
             cand_csv = writer(cf, delimiter=",")
             cand_csv.writerow([cand_name, label])

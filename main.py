@@ -22,6 +22,10 @@ def main():
                         required=False,
                         type=str,
                         default="png")
+    parser.add_argument("-o", "--output", help="Output file name",
+                        required=False,
+                        type=str,
+                        default="results.csv")
 
     arguments = parser.parse_args()
 
@@ -30,7 +34,7 @@ def main():
         exit()
 
     app = QApplication([])
-    cc = CandClass(arguments.directory, arguments.extension)
+    cc = CandClass(arguments.directory, arguments.output, arguments.extension)
 
     try:
         # Just don't run with Python 2.x
