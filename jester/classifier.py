@@ -1,7 +1,7 @@
 from csv import reader, writer
 from glob import glob
 from os import path
-from os.path import basename
+from os.path import basename, isfile
 from shutil import move
 
 from PyQt5.QtCore import QSize
@@ -9,7 +9,8 @@ from PyQt5.QtGui import QPixmap
 from numpy import array, histogram
 
 from PyQt5.QtWidgets import QWidget
-from PyQt5.QtWidgets import QComboBox, QLabel, QLineEdit, QPushButton
+from PyQt5.QtWidgets import QComboBox, QLabel, QLineEdit, QMessageBox
+from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout
 from PyQt5.QtCore import Qt
 
@@ -141,9 +142,6 @@ class CandClassifier(QWidget):
 
         self.setLayout(main_box)
         self.setGeometry(150, 150, 1024, 768)
-        # In reality we should set it properly with
-        # setMinimum/MaximumSize() functions, based on the plot size
-        self.setFixedSize(QSize(1024, 620))
         self.setWindowTitle("MeerTRAP candidate classifier")
         self.show()
 
@@ -151,6 +149,42 @@ class CandClassifier(QWidget):
             self._show_cand()
         else:
             self._cand_label.setText("No candidates to view")
+    
+    """
+        if isfile(path.join(self._directory, self._output_file_name)):
+            done = 0
+            with open(path.join(self._directory, self._output_file_name)) as df:
+                done = sum(1 for line in df)
+
+            if done > 0:
+                self._resume_dialog(done, self._output_file_name)
+
+    def _resume_dialog(self, done, file_name):
+
+        done_box = QMessageBox()
+        done_box.setIcon(QMessageBox.Information)
+        done_box.setText(f"File {file_name} already exists with"
+                         + f"{done} candidates.\n"
+                         + "Would you like to load it?")
+        done_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+
+        done_value = done_box.exec()
+        
+        if done_value == QMessageBox.Yes:
+            self._reload_csv()
+            self._show_cand(min(done, self._total_cands - 1))
+
+    def _reload_csv():
+
+        with open(path.join(self._directory, self._output_file_name)) as df:
+            done_reader = reader(df, delimiter=",")
+
+            for done in done_reader:
+                filename = [0]
+                done = [1]
+    
+    """
+
     def _get_limits(self):
 
         limit_type = self._stats_window.limits_choice.currentText()
@@ -173,6 +207,16 @@ class CandClassifier(QWidget):
         self._show_cand(self._current_cand)
 
     def _show_cand(self, idx = 0):
+
+        if (idx == 0):
+
+            cand_map = QPixmap(self._cand_plots[idx])
+            img_width = cand_map.width()
+            img_height = cand_map.height()
+
+            window_width = max(img_width, 1024)
+            window_height = max(img_height + 100, 620)
+            self.setFixedSize(QSize(window_width, window_height))
 
         if (idx < self._total_cands) and (idx >= 0):
             cand_map = QPixmap(self._cand_plots[idx])
