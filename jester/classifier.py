@@ -215,7 +215,7 @@ class CandClassifier(QWidget):
             img_height = cand_map.height()
 
             window_width = max(img_width, 1024)
-            window_height = max(img_height + 100, 620)
+            window_height = max(img_height + 150, 620)
             self.setFixedSize(QSize(window_width, window_height))
 
         if (idx < self._total_cands) and (idx >= 0):
