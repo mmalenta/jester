@@ -1,12 +1,12 @@
 from csv import reader, writer
 from glob import glob
+from numpy import array, histogram, linspace
 from os import path
 from os.path import basename, isfile
 from shutil import move
 
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QPixmap
-from numpy import array, histogram
 
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWidgets import QComboBox, QLabel, QLineEdit, QMessageBox
@@ -37,6 +37,7 @@ class CandClassifier(QWidget):
         self._stats_window = StatsWindow()
         self._stats_window.update_dist_plot([cand["dm"] for cand in self._cands_params])
         self._stats_window.apply_limits_button.clicked.connect(self._get_limits)
+        self._stats_window.limits_choice.currentTextChanged.connect(self._change_source)
 
         self._help_window = HelpWindow()
         self._examples_window = ExamplesWindow()
@@ -185,14 +186,22 @@ class CandClassifier(QWidget):
     
     """
 
+    def _change_source(self, source):
+
+        self._stats_window.update_dist_plot([cand[source.lower()] for cand in self._cands_params], source == "MJD")
+
     def _get_limits(self):
 
         limit_type = self._stats_window.limits_choice.currentText()
         lower_limit = float(self._stats_window.start_limit.text())
         upper_limit = float(self._stats_window.end_limit.text())
 
+        idx = 0
+        if limit_type == "DM":
+            idx = 2
+
         remaining_plots = self._cand_plots[self._current_cand:]
-        passed_remaining_plots = [cand for cand in remaining_plots if not ((float(basename(cand).split("_")[2]) >= lower_limit) and (float(basename(cand).split("_")[2]) < upper_limit))]
+        passed_remaining_plots = [cand for cand in remaining_plots if not ((float(basename(cand).split("_")[idx]) >= lower_limit) and (float(basename(cand).split("_")[idx]) < upper_limit))]
 
         removed = len(remaining_plots) - len(passed_remaining_plots)
         self._stats_window.remove_label.setText(f"Removed {removed} candidates")
@@ -203,7 +212,7 @@ class CandClassifier(QWidget):
         self._total_cands = len(self._cand_plots)
         self._cands_params = [{"mjd": float(basename(cand).split("_")[0]), "dm": float(basename(cand).split("_")[2])} for cand in self._cand_plots]
 
-        self._stats_window.update_dist_plot([cand["dm"] for cand in self._cands_params])
+        self._stats_window.update_dist_plot([cand[limit_type.lower()] for cand in self._cands_params], limit_type == "MJD")
         self._show_cand(self._current_cand)
 
     def _show_cand(self, idx = 0):
@@ -375,6 +384,7 @@ class StatsWindow(QWidget):
                                                   stepMode=True)
 
         self.dist_plot = PlotWidget()
+        self.dist_plot.setMouseEnabled(y=False)
         self.dist_plot.setBackground("w")
         self.dist_plot.setTitle("Full distribution", color="k")
         self.dist_plot.plot = self.dist_plot.plot([0,0], [0],
@@ -424,10 +434,20 @@ class StatsWindow(QWidget):
                                    bins=min(len(cand_data) + 1, 100))
         self.graph_cand.plot.setData(x_cand, y_cand)
 
-    def update_dist_plot(self, data):
+    def update_dist_plot(self, data, extra_dec=False):
 
         y_dist, x_dist = histogram(data, bins=100)
+        ax = self.dist_plot.getAxis("bottom")
+
+        min_val = min(data)
+        max_val = max(data)
+        tick_vals = linspace(min_val, max_val, num=6)
+        decimals = 2 + extra_dec * 4
+        ticks = [(val, "{:.{dec}f}".format(val, dec=decimals)) for val in tick_vals]
+        ax.setTicks( [ticks, []])
+        ax.setStyle(tickLength=-5)
         self.dist_plot.plot.setData(x_dist, y_dist)
+        self.dist_plot.autoRange()
 
 class HelpWindow(QWidget):
     def __init__(self):
