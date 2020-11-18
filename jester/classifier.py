@@ -67,6 +67,7 @@ class CandClassifier(QWidget):
         self._cand_label = QLabel()
         self._cand_label.setStyleSheet("font-weight: bold;\
                                         font-size: 20px")
+        self._cand_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
         main_box.addWidget(self._cand_label)
 
         buttons_box = QHBoxLayout()
