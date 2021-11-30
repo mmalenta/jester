@@ -29,7 +29,8 @@ class CandClassifier(QWidget):
         self._cand_plots = sorted(glob(path.join(directory, "*" + extension)))
         self._total_cands = len(self._cand_plots)
 
-        self._cands_params = [{"mjd": float(basename(cand).split("_")[0]), "dm": float(basename(cand).split("_")[2])} for cand in self._cand_plots]
+        #self._cands_params = [{"mjd": float(basename(cand).split("_")[0]), "dm": float(basename(cand).split("_")[2])} for cand in self._cand_plots]
+        self._cands_params = [self._splitter(cand) for cand in self._cand_plots]
         self._current_cand = 0
         self._rfi_data = []
         self._cand_data = []
@@ -187,6 +188,38 @@ class CandClassifier(QWidget):
     
     """
 
+    def _splitter(self, cand):
+
+        """
+        
+        Extract DM and MJD from the candidate plot file name.
+
+        Check for different naming conventions we currently use and
+        take them into account when getting that information
+
+        Parameters:
+
+            cand: str
+                Candidate plot name
+
+        Returns:
+
+            cand_dict: dict
+                Dictionary with correctly extracted MJD and DM values
+        
+        """
+
+        cand = basename(cand)
+
+        split_cand = cand.split("_")
+        cand_dict = {}
+        mjd_off = cand.startswith("mjd_")
+        cand_dict["mjd"] = float(split_cand[0 + mjd_off])
+        cand_dict["dm"] = float(split_cand[2 + mjd_off])
+
+        return cand_dict
+
+
     def _change_source(self, source):
 
         self._stats_window.update_dist_plot([cand[source.lower()] for cand in self._cands_params], source == "MJD")
@@ -202,7 +235,7 @@ class CandClassifier(QWidget):
             idx = 2
 
         remaining_plots = self._cand_plots[self._current_cand:]
-        passed_remaining_plots = [cand for cand in remaining_plots if not ((float(basename(cand).split("_")[idx]) >= lower_limit) and (float(basename(cand).split("_")[idx]) < upper_limit))]
+        passed_remaining_plots = [cand for cand in remaining_plots if not ((float(basename(cand).split("_")[idx + cand.startswith("mjd_")]) >= lower_limit) and (float(basename(cand).split("_")[idx + cand.startswith("mjd_")]) < upper_limit))]
 
         removed = len(remaining_plots) - len(passed_remaining_plots)
         self._stats_window.remove_label.setText(f"Removed {removed} candidates")
@@ -211,7 +244,8 @@ class CandClassifier(QWidget):
 
         self._cand_plots.extend(passed_remaining_plots)
         self._total_cands = len(self._cand_plots)
-        self._cands_params = [{"mjd": float(basename(cand).split("_")[0]), "dm": float(basename(cand).split("_")[2])} for cand in self._cand_plots]
+        #self._cands_params = [{"mjd": float(basename(cand).split("_")[0]), "dm": float(basename(cand).split("_")[2])} for cand in self._cand_plots]
+        self._cands_params = [self._splitter(cand) for cand in self._cand_plots]
 
         self._stats_window.update_dist_plot([cand[limit_type.lower()] for cand in self._cands_params], limit_type == "MJD")
         self._show_cand(self._current_cand)
@@ -281,7 +315,7 @@ class CandClassifier(QWidget):
 
         cand_name = basename(self._cand_plots[idx])
         split_cand = cand_name.split("_")
-        cand_dm = float(split_cand[2])
+        cand_dm = float(split_cand[2 + cand_name.startswith("mjd_")])
         
         cand = (idx, cand_dm)
 
