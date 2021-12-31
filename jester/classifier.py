@@ -378,37 +378,40 @@ class CandClassifier(QWidget):
         cand = (idx, cand_dm)
 
         if class_type == "rfi":
-            self._rfi_data.append(cand)
-            if cand in self._cand_data:
-                self._cand_data.remove(cand)
-                self._replace_csv(cand_name, 0)
-            elif cand in self._known_data:
-                self._known_data.remove(cand)
-                self._replace_csv(cand_name, 0)
-            else:
-                self._add_csv(cand_name, 0)
+            if cand not in self._rfi_data:
+                self._rfi_data.append(cand)
+                if cand in self._cand_data:
+                    self._cand_data.remove(cand)
+                    self._replace_csv(cand_name, 0)
+                elif cand in self._known_data:
+                    self._known_data.remove(cand)
+                    self._replace_csv(cand_name, 0)
+                else:
+                    self._add_csv(cand_name, 0)
         
         elif class_type == "known":
-            self._known_data.append(cand)
-            if cand in self._rfi_data:
-                self._rfi_data.remove(cand)
-                self._replace_csv(cand_name, 2)
-            elif cand in self._cand_data:
-                self._cand_data.remove(cand)
-                self._replace_csv(cand_name, 2)
-            else:
-                self._add_csv(cand_name, 2)
+            if cand not in self._known_data:
+                self._known_data.append(cand)
+                if cand in self._rfi_data:
+                    self._rfi_data.remove(cand)
+                    self._replace_csv(cand_name, 2)
+                elif cand in self._cand_data:
+                    self._cand_data.remove(cand)
+                    self._replace_csv(cand_name, 2)
+                else:
+                    self._add_csv(cand_name, 2)
 
         elif class_type == "cand":
-            self._cand_data.append(cand)
-            if cand in self._rfi_data:
-                self._rfi_data.remove(cand)
-                self._replace_csv(cand_name, 1)
-            elif cand in self._known_data:
-                self._known_data.remove(cand)
-                self._replace_csv(cand_name, 1)
-            else:
-                self._add_csv(cand_name, 1)
+            if cand not in self._cand_data:
+                self._cand_data.append(cand)
+                if cand in self._rfi_data:
+                    self._rfi_data.remove(cand)
+                    self._replace_csv(cand_name, 1)
+                elif cand in self._known_data:
+                    self._known_data.remove(cand)
+                    self._replace_csv(cand_name, 1)
+                else:
+                    self._add_csv(cand_name, 1)
 
         self._rfi_count_label.setText(f"RFI: {len(self._rfi_data)}")
         self._known_count_label.setText(f"Known: {len(self._known_data)}")
