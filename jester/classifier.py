@@ -33,6 +33,7 @@ class CandClassifier(QWidget):
         self._cands_params = [self._splitter(cand) for cand in self._cand_plots]
         self._current_cand = 0
         self._rfi_data = []
+        self._known_data = []
         self._cand_data = []
 
         self._stats_window = StatsWindow()
@@ -57,11 +58,17 @@ class CandClassifier(QWidget):
         self._rfi_count_label = QLabel("RFI: 0")
         self._rfi_count_label.setStyleSheet("font-weight: bold;\
                                         font-size: 20px")
+
+        self._known_count_label = QLabel("Known: 0")
+        self._known_count_label.setStyleSheet("font-weight: bold;\
+                                        font-size: 20px")
+
         self._cand_count_label = QLabel("Candidates: 0")
         self._cand_count_label.setStyleSheet("font-weight: bold;\
                                             font-size: 20px")
         
         stats_box.addWidget(self._rfi_count_label)
+        stats_box.addWidget(self._known_count_label)
         stats_box.addWidget(self._cand_count_label)
         main_box.addLayout(stats_box)
 
@@ -76,16 +83,27 @@ class CandClassifier(QWidget):
         self._rfi_button = QPushButton()
         self._rfi_button.setText("RFI")
         self._rfi_button.clicked.connect(self._rfi_press)
-        self._rfi_button.setFixedSize(250, 50)
+        self._rfi_button.setFixedSize(150, 50)
         self._rfi_button.setStyleSheet("background-color: red;\
                                         font-weight: bold;\
                                         font-variant: small-caps;\
                                         font-size: 25px")
         cand_box.addWidget(self._rfi_button)
+
+        self._known_button = QPushButton()
+        self._known_button.setText("Known")
+        self._known_button.clicked.connect(self._known_press)
+        self._known_button.setFixedSize(150, 50)
+        self._known_button.setStyleSheet("background-color: orange;\
+                                        font-weight: bold;\
+                                        font-variant: small-caps;\
+                                        font-size: 25px")
+        cand_box.addWidget(self._known_button)
+
         self._cand_button = QPushButton()
         self._cand_button.setText("Candidate")
         self._cand_button.clicked.connect(self._cand_press)
-        self._cand_button.setFixedSize(250, 50)
+        self._cand_button.setFixedSize(150, 50)
         self._cand_button.setStyleSheet("background-color: green;\
                                         font-weight: bold;\
                                         font-variant: small-caps;\
@@ -297,6 +315,7 @@ class CandClassifier(QWidget):
 
         route = {
             Qt.Key_A: self._rfi_press,
+            Qt.Key_S: self._known_press,
             Qt.Key_D: self._cand_press,
             Qt.Key_Z: self._previous_press,
             Qt.Key_X: self._next_press,
@@ -320,25 +339,40 @@ class CandClassifier(QWidget):
         cand = (idx, cand_dm)
 
         if class_type == "rfi":
+            self._rfi_data.append(cand)
             if cand in self._cand_data:
                 self._cand_data.remove(cand)
-                self._rfi_data.append(cand)
                 self._replace_csv(cand_name, 0)
-
-            if cand not in self._rfi_data:
-                self._rfi_data.append(cand)
+            elif cand in self._known_data:
+                self._known_data.remove(cand)
+                self._replace_csv(cand_name, 0)
+            else:
                 self._add_csv(cand_name, 0)
-        else:
+        
+        elif class_type == "known":
+            self._known_data.append(cand)
             if cand in self._rfi_data:
                 self._rfi_data.remove(cand)
-                self._cand_data.append(cand)
-                self._replace_csv(cand_name, 1)
+                self._replace_csv(cand_name, 2)
+            elif cand in self._cand_data:
+                self._cand_data.remove(cand)
+                self._replace_csv(cand_name, 2)
+            else:
+                self._add_csv(cand_name, 2)
 
-            if cand not in self._cand_data:
-                self._cand_data.append(cand)
+        elif class_type == "cand":
+            self._cand_data.append(cand)
+            if cand in self._rfi_data:
+                self._rfi_data.remove(cand)
+                self._replace_csv(cand_name, 1)
+            elif cand in self._known_data:
+                self._known_data.remove(cand)
+                self._replace_csv(cand_name, 1)
+            else:
                 self._add_csv(cand_name, 1)
 
         self._rfi_count_label.setText(f"RFI: {len(self._rfi_data)}")
+        self._known_count_label.setText(f"Known: {len(self._known_data)}")
         self._cand_count_label.setText(f"Candidates: {len(self._cand_data)}")
 
         self._stats_window._update(self._rfi_data, self._cand_data)
@@ -373,8 +407,12 @@ class CandClassifier(QWidget):
         self._update_list(self._current_cand, "rfi")
         self._show_cand(self._current_cand + 1)
 
+    def _known_press(self, event):
+        self._update_list(self._current_cand, "known")
+        self._show_cand(self._current_cand + 1)
+
     def _cand_press(self, event):
-        self._update_list(self._current_cand, "camd")
+        self._update_list(self._current_cand, "cand")
         self._show_cand(self._current_cand + 1)
 
     def _next_press(self, event):
@@ -491,7 +529,7 @@ class HelpWindow(QWidget):
 
         help_contents = QVBoxLayout()
         help_label = QLabel()
-        help_label.setText("RFI: A\nCandidate: D\nPrevious: Z\nNext: X\nBack 5: PgDown\nForward 5: PgUp\nBack to start: Home\nSkip to end: End")
+        help_label.setText("RFI: A\nKnown source: S\nCandidate: D\nPrevious: Z\nNext: X\nBack 5: PgDown\nForward 5: PgUp\nBack to start: Home\nSkip to end: End")
         help_contents.addWidget(help_label)
         self.setLayout(help_contents)
 
