@@ -23,14 +23,11 @@ class CandClassifier(QWidget):
 
         super().__init__()
 
-        print()
-
         self._directory = directory
         self._output_file_name = output
         self._cand_plots = sorted(glob(path.join(directory, "*" + extension)))
         self._total_cands = len(self._cand_plots)
 
-        #self._cands_params = [{"mjd": float(basename(cand).split("_")[0]), "dm": float(basename(cand).split("_")[2])} for cand in self._cand_plots]
         self._cands_params = [self._splitter(cand) for cand in self._cand_plots]
         self._current_cand = 0
         self._rfi_data = []
@@ -75,11 +72,21 @@ class CandClassifier(QWidget):
         stats_box.addWidget(self._cand_count_label)
         main_box.addLayout(stats_box)
 
+        current_box = QHBoxLayout()
+
+        self._current_cand_select = QLineEdit()
+        self._current_cand_select.setFixedSize(100, 25)
+        self._current_cand_select.setText(str(1))
+        self._current_cand_select.setStyleSheet("font-weight: bold;\
+                                        font-size: 20px")
+        self._current_cand_select.returnPressed.connect(self._set_cand)
+        current_box.addWidget(self._current_cand_select)
         self._cand_label = QLabel()
         self._cand_label.setStyleSheet("font-weight: bold;\
                                         font-size: 20px")
         self._cand_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        main_box.addWidget(self._cand_label)
+        current_box.addWidget(self._cand_label)
+        main_box.addLayout(current_box)
 
         buttons_box = QHBoxLayout()
         cand_box = QHBoxLayout()
@@ -275,7 +282,6 @@ class CandClassifier(QWidget):
         self._auto_speed_value = state
 
     def _change_source(self, source):
-
         self._stats_window.update_dist_plot([cand[source.lower()] for cand in self._cands_params], source == "MJD")
 
     def _get_limits(self):
@@ -304,6 +310,17 @@ class CandClassifier(QWidget):
         self._stats_window.update_dist_plot([cand[limit_type.lower()] for cand in self._cands_params], limit_type == "MJD")
         self._show_cand(self._current_cand)
 
+    def _set_cand(self):
+
+        self._plot_label.setFocus()
+
+        state = self._current_cand_select.text()
+
+        if not state:
+            self._show_cand(0)
+        else:
+            self._show_cand(int(state) - 1)
+
     def _show_cand(self, idx = 0):
 
         if (idx == 0):
@@ -320,8 +337,8 @@ class CandClassifier(QWidget):
             cand_map = QPixmap(self._cand_plots[idx])
             self._plot_label.setPixmap(cand_map)
             self._current_cand = idx
-            self._cand_label.setText(f"{self._current_cand + 1}"
-                                    + f" out of {self._total_cands}:"
+            self._current_cand_select.setText(str(self._current_cand + 1))
+            self._cand_label.setText(f" out of {self._total_cands}:"
                                     + f" {basename(self._cand_plots[idx])}")
 
     def _open_stats(self):
