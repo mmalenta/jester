@@ -349,7 +349,8 @@ class CandClassifier(QWidget):
 
     def keyPressEvent(self, event):
 
-        self._enable_auto()
+        if self._auto_enabled:
+            self._auto_enable.setChecked(not self._auto_enabled)
 
         route = {
             Qt.Key_A: self._rfi_press,
