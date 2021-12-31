@@ -1,3 +1,4 @@
+import asyncio
 from csv import reader, writer
 from glob import glob
 from numpy import array, histogram, linspace
@@ -8,11 +9,11 @@ from shutil import move
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QPixmap
 
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QCheckBox, QSpinBox
 from PyQt5.QtWidgets import QComboBox, QLabel, QLineEdit, QMessageBox
 from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 
 from pyqtgraph import mkPen, PlotWidget
 
@@ -35,6 +36,8 @@ class CandClassifier(QWidget):
         self._rfi_data = []
         self._known_data = []
         self._cand_data = []
+        self._auto_enabled = False
+        self._auto_speed_value = 2
 
         self._stats_window = StatsWindow()
         self._stats_window.update_dist_plot([cand["dm"] for cand in self._cands_params])
@@ -111,6 +114,8 @@ class CandClassifier(QWidget):
         cand_box.addWidget(self._cand_button)
         cand_box.setContentsMargins(0, 0, 30, 0)
 
+        view_box = QVBoxLayout()
+
         nav_box = QHBoxLayout()
         self._skip_start_button = QPushButton()
         self._skip_start_button.setText("|<")
@@ -141,9 +146,29 @@ class CandClassifier(QWidget):
         self._skip_end_button.clicked.connect(self._skip_end_press)
         nav_box.addWidget(self._skip_end_button)
         nav_box.setContentsMargins(0, 0, 30, 0)
+        view_box.addLayout(nav_box)
+        
+        auto_box = QHBoxLayout()
+        self._auto_timer = QTimer()
+        self._auto_timer.timeout.connect(self._next_press)
+        self._auto_label = QLabel("Enable auto view")
+        auto_box.addWidget(self._auto_label)
+        self._auto_enable = QCheckBox()
+        self._auto_enable.stateChanged.connect(self._enable_auto)
+        auto_box.addWidget(self._auto_enable)
+        self._auto_speed = QSpinBox()
+        self._auto_speed.setMinimum(1)
+        self._auto_speed.setMaximum(10)
+        self._auto_speed.setValue(self._auto_speed_value)
+        self._auto_speed.valueChanged.connect(self._change_auto_speed)
+        auto_box.addWidget(self._auto_speed)
+        self._speed_label = QLabel(" cands per second")
+        auto_box.addWidget(self._speed_label)
+        auto_box.setContentsMargins(0, 0, 30, 0)
+        view_box.addLayout(auto_box)
 
         buttons_box.addLayout(cand_box)
-        buttons_box.addLayout(nav_box)
+        buttons_box.addLayout(view_box)
 
         extra_buttons = QVBoxLayout()
         self._stats_button = QPushButton()
@@ -237,6 +262,17 @@ class CandClassifier(QWidget):
 
         return cand_dict
 
+    def _enable_auto(self, state=None):
+
+        self._auto_enabled = not self._auto_enabled
+        if self._auto_enabled:
+            self._auto_speed_value = self._auto_speed.value()
+            self._auto_timer.start(1000 / self._auto_speed_value)
+        else:
+            self._auto_timer.stop()
+
+    def _change_auto_speed(self, state):
+        self._auto_speed_value = state
 
     def _change_source(self, source):
 
@@ -312,6 +348,8 @@ class CandClassifier(QWidget):
             self._examples_window.hide()
 
     def keyPressEvent(self, event):
+
+        self._enable_auto()
 
         route = {
             Qt.Key_A: self._rfi_press,
@@ -415,7 +453,7 @@ class CandClassifier(QWidget):
         self._update_list(self._current_cand, "cand")
         self._show_cand(self._current_cand + 1)
 
-    def _next_press(self, event):
+    def _next_press(self, event=None):
         self._show_cand(self._current_cand + 1)
 
     def _previous_press(self, event):
