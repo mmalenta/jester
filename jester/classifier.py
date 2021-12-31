@@ -366,8 +366,7 @@ class CandClassifier(QWidget):
 
     def keyPressEvent(self, event):
 
-        if self._auto_enabled:
-            self._auto_enable.setChecked(not self._auto_enabled)
+
 
         route = {
             Qt.Key_A: self._rfi_press,
@@ -375,6 +374,7 @@ class CandClassifier(QWidget):
             Qt.Key_D: self._cand_press,
             Qt.Key_Z: self._previous_press,
             Qt.Key_X: self._next_press,
+            Qt.Key_V: self._auto_enable.nextCheckState,
             Qt.Key_PageDown: self._previous_skip_press,
             Qt.Key_PageUp: self._next_skip_press,
             Qt.Key_Home: self._skip_start_press,
@@ -384,7 +384,12 @@ class CandClassifier(QWidget):
         pressed = event.key()
         function = route.get(pressed)
         if function:
-            return function(event)
+            if pressed != Qt.Key_V:
+                if self._auto_enabled:
+                    self._auto_enable.nextCheckState()
+                return function(event)
+            else:
+                return function()
 
     def _update_list(self, idx, class_type):
 
@@ -588,7 +593,7 @@ class HelpWindow(QWidget):
 
         help_contents = QVBoxLayout()
         help_label = QLabel()
-        help_label.setText("RFI: A\nKnown source: S\nCandidate: D\nPrevious: Z\nNext: X\nBack 5: PgDown\nForward 5: PgUp\nBack to start: Home\nSkip to end: End")
+        help_label.setText("Auto scroll toggle: V\nRFI: A\nKnown source: S\nCandidate: D\nPrevious: Z\nNext: X\nBack 5: PgDown\nForward 5: PgUp\nBack to start: Home\nSkip to end: End")
         help_contents.addWidget(help_label)
         self.setLayout(help_contents)
 
