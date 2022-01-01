@@ -36,6 +36,8 @@ class CandClassifier(QWidget):
         self._auto_enabled = False
         self._auto_speed_value = 2
 
+        self._dm_time_window = DmTimeWindow()
+        self._dm_time_window.update(self._cands_params)
         self._stats_window = StatsWindow()
         self._stats_window.update_dist_plot([cand["dm"] for cand in self._cands_params])
         self._stats_window.apply_limits_button.clicked.connect(self._get_limits)
@@ -178,6 +180,10 @@ class CandClassifier(QWidget):
         buttons_box.addLayout(view_box)
 
         extra_buttons = QVBoxLayout()
+        self._dm_time_button = QPushButton()
+        self._dm_time_button.setText("DM-time Plot")
+        self._dm_time_button.clicked.connect(self._toggle_dm_time)
+        extra_buttons.addWidget(self._dm_time_button)
         self._stats_button = QPushButton()
         self._stats_button.clicked.connect(self._open_stats)
         self._stats_button.setText("Open Statistics")
@@ -341,6 +347,12 @@ class CandClassifier(QWidget):
             self._cand_label.setText(f" out of {self._total_cands}:"
                                     + f" {basename(self._cand_plots[idx])}")
 
+    def _toggle_dm_time(self):
+
+        if not self._dm_time_window.isVisible():
+            self._dm_time_window.show()
+        else:
+            self._dm_time_window.hide()
     def _open_stats(self):
 
         if not self._stats_window.isVisible():
@@ -499,6 +511,29 @@ class CandClassifier(QWidget):
     def _skip_end_press(self, event):
         self._show_cand(self._total_cands - 1)
 
+class DmTimeWindow(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        self.setGeometry(150 + 1024, 250, 800, 600)
+
+        main_box = QVBoxLayout()
+
+        self.graph_dm_time = PlotWidget()
+        self.graph_dm_time.setBackground("w")
+        self.graph_dm_time.setTitle("DM vs time candidates", color="k")
+        self.graph_dm_time.setMouseEnabled(x=False, y=False)
+        
+        main_box.addWidget(self.graph_dm_time)
+        self.setLayout(main_box)
+
+    def update(self, data):
+        
+        self.graph_dm_time.plot([cand["mjd"] for cand in data],
+                                [cand["dm"] for cand in data],
+                                pen=None, symbol="o",
+                                symbolBrush=(125, 125, 125, 75))
+        self.graph_dm_time.setLogMode(x=False, y=True)
 class StatsWindow(QWidget):
 
     def __init__(self):
